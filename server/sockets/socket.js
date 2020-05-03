@@ -20,17 +20,20 @@ io.on('connection', (client) => {
             usuarios.agregarPersona(client.id, data.name, data.sala);
 
             client.broadcast.to(data.sala).emit('listaPersonas', usuarios.getPersonaPorSala(data.sala));
+            client.broadcast.to(data.sala).emit('crearMensaje', crearMensaje('Administrador', `${data.name} se unio`));
 
             callback(usuarios.getPersonaPorSala(data.sala));
         }
     });
 
-    client.on('crearMensaje', (data) => {
+    client.on('crearMensaje', (data, callback) => {
 
         let persona = usuarios.getPersona(client.id);
         let mensaje = crearMensaje(persona.name, data.mensaje);
 
         client.broadcast.to(persona.sala).emit('crearMensaje', mensaje);
+
+        callback(mensaje);
     });
 
     client.on('disconnect', () => {
@@ -45,9 +48,7 @@ io.on('connection', (client) => {
     //Mjs Privados 
 
     client.on('mensajePrivado', data => {
-        if (!client.id) {
-            console.log('Se necesita el id ');
-        }
+
 
         if (!data.mensaje) {
             console.log('Mensaje vacio');
